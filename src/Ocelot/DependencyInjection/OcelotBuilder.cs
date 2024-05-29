@@ -51,7 +51,6 @@ namespace Ocelot.DependencyInjection
             Configuration = configurationRoot;
             Services = services;
             Services.Configure<FileConfiguration>(configurationRoot);
-            Services.Configure<FileGlobalConfiguration>(configurationRoot.GetSection("GlobalConfiguration"));
             
             Services.TryAddSingleton<IHttpResponseHeaderReplacer, HttpResponseHeaderReplacer>();
             Services.TryAddSingleton<IHttpContextRequestHeaderReplacer, HttpContextRequestHeaderReplacer>();
