@@ -33,7 +33,6 @@ public sealed class ConsulConfigurationInConsulTests : Steps, IDisposable
     {
         var consulPort = PortFinder.GetRandomPort();
         var servicePort = PortFinder.GetRandomPort();
-
         var configuration = new FileConfiguration
         {
             Routes = new List<FileRoute>
@@ -65,10 +64,10 @@ public sealed class ConsulConfigurationInConsulTests : Steps, IDisposable
             },
         };
 
-        var fakeConsulServiceDiscoveryUrl = $"http://localhost:{consulPort}";
+        var fakeConsulServiceDiscoveryUrl = DownstreamUrl(consulPort);
 
         this.Given(x => GivenThereIsAFakeConsulServiceDiscoveryProvider(fakeConsulServiceDiscoveryUrl, string.Empty))
-            .And(x => x.GivenThereIsAServiceRunningOn($"http://localhost:{servicePort}", string.Empty, 200, "Hello from Laura"))
+            .And(x => x.GivenThereIsAServiceRunningOn(DownstreamUrl(servicePort), string.Empty, 200, "Hello from Laura"))
             .And(x => GivenThereIsAConfiguration(configuration))
             .And(x => GivenOcelotIsRunningUsingConsulToStoreConfig())
             .When(x => WhenIGetUrlOnTheApiGateway("/"))
@@ -96,7 +95,7 @@ public sealed class ConsulConfigurationInConsulTests : Steps, IDisposable
             },
         };
 
-        var fakeConsulServiceDiscoveryUrl = $"http://localhost:{consulPort}";
+        var fakeConsulServiceDiscoveryUrl = DownstreamUrl(consulPort);
         var consulConfig = new FileConfiguration
         {
             Routes = new List<FileRoute>
@@ -130,7 +129,7 @@ public sealed class ConsulConfigurationInConsulTests : Steps, IDisposable
 
         this.Given(x => GivenTheConsulConfigurationIs(consulConfig))
             .And(x => GivenThereIsAFakeConsulServiceDiscoveryProvider(fakeConsulServiceDiscoveryUrl, string.Empty))
-            .And(x => x.GivenThereIsAServiceRunningOn($"http://localhost:{servicePort}", "/status", 200, "Hello from Laura"))
+            .And(x => x.GivenThereIsAServiceRunningOn(DownstreamUrl(servicePort), "/status", 200, "Hello from Laura"))
             .And(x => GivenThereIsAConfiguration(configuration))
             .And(x => GivenOcelotIsRunningUsingConsulToStoreConfig())
             .When(x => WhenIGetUrlOnTheApiGateway("/cs/status"))
@@ -157,7 +156,7 @@ public sealed class ConsulConfigurationInConsulTests : Steps, IDisposable
             },
         };
 
-        var fakeConsulServiceDiscoveryUrl = $"http://localhost:{consulPort}";
+        var fakeConsulServiceDiscoveryUrl = DownstreamUrl(consulPort);
 
         var consulConfig = new FileConfiguration
         {
@@ -223,7 +222,7 @@ public sealed class ConsulConfigurationInConsulTests : Steps, IDisposable
 
         this.Given(x => GivenTheConsulConfigurationIs(consulConfig))
             .And(x => GivenThereIsAFakeConsulServiceDiscoveryProvider(fakeConsulServiceDiscoveryUrl, string.Empty))
-            .And(x => x.GivenThereIsAServiceRunningOn($"http://localhost:{servicePort}", "/status", 200, "Hello from Laura"))
+            .And(x => x.GivenThereIsAServiceRunningOn(DownstreamUrl(servicePort), "/status", 200, "Hello from Laura"))
             .And(x => GivenThereIsAConfiguration(configuration))
             .And(x => GivenOcelotIsRunningUsingConsulToStoreConfig())
             .And(x => WhenIGetUrlOnTheApiGateway("/cs/status"))
@@ -240,8 +239,8 @@ public sealed class ConsulConfigurationInConsulTests : Steps, IDisposable
         var consulPort = PortFinder.GetRandomPort();
         const string serviceName = "web";
         var downstreamServicePort = PortFinder.GetRandomPort();
-        var downstreamServiceOneUrl = $"http://localhost:{downstreamServicePort}";
-        var fakeConsulServiceDiscoveryUrl = $"http://localhost:{consulPort}";
+        var downstreamServiceOneUrl = DownstreamUrl(downstreamServicePort);
+        var fakeConsulServiceDiscoveryUrl = DownstreamUrl(consulPort);
         var serviceEntryOne = new ServiceEntry
         {
             Service = new AgentService
@@ -285,7 +284,7 @@ public sealed class ConsulConfigurationInConsulTests : Steps, IDisposable
                     DisableRateLimitHeaders = false,
                     QuotaExceededMessage = string.Empty,
                     RateLimitCounterPrefix = string.Empty,
-                    HttpStatusCode = 428,
+                    HttpStatusCode = (int)HttpStatusCode.PreconditionRequired,
                 },
                 DownstreamScheme = "http",
             },
@@ -304,31 +303,19 @@ public sealed class ConsulConfigurationInConsulTests : Steps, IDisposable
             },
         };
 
-        //this.Given(x => x.GivenThereIsAServiceRunningOn(downstreamServiceOneUrl, "/something", 200, "Hello from Laura"))
-        //.And(x => GivenTheConsulConfigurationIs(consulConfig))
-        //.And(x => x.GivenThereIsAFakeConsulServiceDiscoveryProvider(fakeConsulServiceDiscoveryUrl, serviceName))
-        //.And(x => x.GivenTheServicesAreRegisteredWithConsul(serviceEntryOne))
-        //.And(x => _steps.GivenThereIsAConfiguration(configuration))
-        //.And(x => _steps.GivenOcelotIsRunningUsingConsulToStoreConfig())
-        //.When(x => _steps.WhenIGetUrlOnTheApiGatewayMultipleTimesForRateLimit("/web/something", 1))
-        //.Then(x => _steps.ThenTheStatusCodeShouldBe(200))
-        //.When(x => _steps.WhenIGetUrlOnTheApiGatewayMultipleTimesForRateLimit("/web/something", 2))
-        //.Then(x => _steps.ThenTheStatusCodeShouldBe(200))
-        //.When(x => _steps.WhenIGetUrlOnTheApiGatewayMultipleTimesForRateLimit("/web/something", 1))
-        //.Then(x => _steps.ThenTheStatusCodeShouldBe(428))
-        //.BDDfy();
-        GivenThereIsAServiceRunningOn(downstreamServiceOneUrl, "/something", 200, "Hello from Laura");
-        GivenTheConsulConfigurationIs(consulConfig);
-        GivenThereIsAFakeConsulServiceDiscoveryProvider(fakeConsulServiceDiscoveryUrl, serviceName);
-        GivenTheServicesAreRegisteredWithConsul(serviceEntryOne);
-        GivenThereIsAConfiguration(configuration);
-        GivenOcelotIsRunningUsingConsulToStoreConfig();
-        WhenIGetUrlOnTheApiGatewayMultipleTimesForRateLimit("/web/something", 1);
-        ThenTheStatusCodeShouldBe(200);
-        WhenIGetUrlOnTheApiGatewayMultipleTimesForRateLimit("/web/something", 2);
-        ThenTheStatusCodeShouldBe(200);
-        WhenIGetUrlOnTheApiGatewayMultipleTimesForRateLimit("/web/something", 1);
-        ThenTheStatusCodeShouldBe(428);
+        this.Given(x => x.GivenThereIsAServiceRunningOn(downstreamServiceOneUrl, "/something", 200, "Hello from Laura"))
+            .And(x => GivenTheConsulConfigurationIs(consulConfig))
+            .And(x => x.GivenThereIsAFakeConsulServiceDiscoveryProvider(fakeConsulServiceDiscoveryUrl, serviceName))
+            .And(x => x.GivenTheServicesAreRegisteredWithConsul(serviceEntryOne))
+            .And(x => GivenThereIsAConfiguration(configuration))
+            .And(x => GivenOcelotIsRunningUsingConsulToStoreConfig())
+            .When(x => WhenIGetUrlOnTheApiGatewayMultipleTimesForRateLimit("/web/something", 1))
+            .Then(x => ThenTheStatusCodeShouldBe(HttpStatusCode.OK))
+            .When(x => WhenIGetUrlOnTheApiGatewayMultipleTimesForRateLimit("/web/something", 2))
+            .Then(x => ThenTheStatusCodeShouldBe(HttpStatusCode.OK))
+            .When(x => WhenIGetUrlOnTheApiGatewayMultipleTimesForRateLimit("/web/something", 1))
+            .Then(x => ThenTheStatusCodeShouldBe(HttpStatusCode.PreconditionRequired))
+            .BDDfy();
     }
 
     private async Task ThenTheConfigIsUpdatedInOcelot()
@@ -378,11 +365,8 @@ public sealed class ConsulConfigurationInConsulTests : Steps, IDisposable
                                 if (context.Request.Method.ToLower() == "get" && context.Request.Path.Value == "/v1/kv/InternalConfiguration")
                                 {
                                     var json = JsonConvert.SerializeObject(_config);
-
                                     var bytes = Encoding.UTF8.GetBytes(json);
-
                                     var base64 = Convert.ToBase64String(bytes);
-
                                     var kvp = new FakeConsulGetResponse(base64);
                                     json = JsonConvert.SerializeObject(new[] { kvp });
                                     context.Response.Headers.Append("Content-Type", "application/json");
@@ -397,11 +381,8 @@ public sealed class ConsulConfigurationInConsulTests : Steps, IDisposable
                                         // Synchronous operations are disallowed. Call ReadAsync or set AllowSynchronousIO to true instead.
                                         // var json = reader.ReadToEnd();                                            
                                         var json = await reader.ReadToEndAsync();
-
                                         _config = JsonConvert.DeserializeObject<FileConfiguration>(json);
-
                                         var response = JsonConvert.SerializeObject(true);
-
                                         await context.Response.WriteAsync(response);
                                     }
                                     catch (Exception e)
