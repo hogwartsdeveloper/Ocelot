@@ -324,9 +324,9 @@ public sealed class ConsulConfigurationInConsulTests : Steps, IDisposable
         {
             try
             {
-                await _steps.WhenIGetUrlOnTheApiGateway("/cs/status/awesome");
-                _steps.ThenTheStatusCodeShouldBe(HttpStatusCode.OK);
-                _steps.ThenTheResponseBodyShouldBe("Hello from Laura");
+                await WhenIGetUrlOnTheApiGateway("/cs/status/awesome");
+                ThenTheStatusCodeShouldBe(HttpStatusCode.OK);
+                ThenTheResponseBodyShouldBe("Hello from Laura");
                 return true;
             }
             catch (Exception)
